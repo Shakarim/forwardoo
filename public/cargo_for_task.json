@@ -1,0 +1,53 @@
+{
+    "transport_type": "Sea",
+    "cargo": [
+        {
+            "length": 150,
+            "width": 100,
+            "height": 140,
+            "weight": 300,
+            "quantity": 10,
+            "stacking":"OnlyBottom"
+        },
+        {
+            "length": 250,
+            "width": 150,
+            "height": 100,
+            "weight": 500,
+            "quantity": 20,
+            "stacking":"AnyStacking"
+        },
+        {
+            "length": 200,
+            "width": 100,
+            "height": 100,
+            "weight": 70,
+            "quantity": 10,
+            "stacking":"OnlyTop"
+        },
+        {
+            "length": 500,
+            "width": 200,
+            "height": 100,
+            "weight": 400,
+            "quantity": 7,
+            "stacking":"OnlyBottom"
+        },
+        {
+            "length": 400,
+            "width": 150,
+            "height": 200,
+            "weight": 100,
+            "quantity": 12,
+            "stacking":"OnlyTop"
+        },
+        {
+            "length": 150,
+            "width": 150,
+            "height": 200,
+            "weight": 300,
+            "quantity": 5,
+            "stacking":"NoStacking"
+        }
+    ]
+}
