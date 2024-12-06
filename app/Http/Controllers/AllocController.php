@@ -4,54 +4,41 @@ namespace App\Http\Controllers;
 
 use App\Modules\Cargo\Enums\Stacking;
 use App\Modules\Cargo\Enums\TransportType;
-use App\Modules\Cargo\Models\Cargo;
-use App\Modules\Cargo\Services\Allocator;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use Illuminate\View\View;
+use App\Modules\Cargo\Helpers\Cargo;
+use App\Modules\Cargo\Helpers\Size;
+use App\Modules\Cargo\Requests\CargoFormRequest;
+use App\Modules\Cargo\Services\AllocationService;
+use Illuminate\Http\JsonResponse;
 
 class AllocController extends Controller
 {
     public function __construct(
-        protected Allocator $allocator
+        protected AllocationService $allocator
     ) {
     }
 
-    public function index(): View
+    public function index(CargoFormRequest $request): JsonResponse
     {
-        // Getting the data
-        $content = File::get(public_path('cargo_for_task.json'));
-        $json = json_decode($content, true);
+        $validated = $request->validated();
 
-        $validator = Validator::make($json, [
-            'transport_type' => ['required', Rule::enum(TransportType::class)],
-            'cargo' => ['required', 'array'],
-            'cargo.*.length' => ['required', 'numeric'],
-            'cargo.*.width' => ['required', 'numeric'],
-            'cargo.*.height' => ['required', 'numeric'],
-            'cargo.*.weight' => ['required', 'numeric'],
-            'cargo.*.quantity' => ['required', 'numeric'],
-            'cargo.*.stacking' => ['required', Rule::enum(Stacking::class)],
-        ]);
+        $cargo = array_map(function ($item) {
+            $size = new Size(...['length' => $item['length'], 'width' => $item['width'], 'height' => $item['height']]);
+            return new Cargo(...[
+                'stacking' => Stacking::from($item['stacking']),
+                'size' => $size,
+                'quantity' => $item['quantity'],
+                'weight' => $item['weight'],
+            ]);
+        }, $validated['cargo']);
 
-        var_dump($validator->fails());
-        var_dump($validator->errors());
+        $transportTypes = array_map(function ($item) {
+            return TransportType::from($item);
+        }, $validated['transport_types']);
 
-        die;
+        if ($transport = $this->allocator->allocate($cargo, $transportTypes)) {
+            return response()->json(['transport' => $transport->getName()]);
+        }
 
-        // Prepare data for service
-        $transportTypes = array_map(
-            fn($item) => TransportType::from($item),
-            $json['transport_type'] ? [$json['transport_type']] : []
-        );
-        $cargos = array_map(fn($cargoAttrs) => (new Cargo())->fill($cargoAttrs), $json['cargo']);
-
-        // Calling service
-        $this->allocator->allocate($transportTypes, $cargos);
-
-        return view('alloc.index', [
-            'data' => []
-        ]);
+        return response()->json(['message' => 'transport not found'], 404);
     }
 }
