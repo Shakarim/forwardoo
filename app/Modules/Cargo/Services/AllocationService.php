@@ -45,6 +45,7 @@ class AllocationService
 
     public function __construct(
         private BlockMakingService $blockMakingService,
+        private BlockLoader $blockLoader,
         private array $transports = []
     ) {
         $this->transports = array_map(function ($transport) {
@@ -76,7 +77,7 @@ class AllocationService
         return match (true) {
             count($candidateTransports) === 0 => null,
             count($candidateTransports) === 1 => array_pop($candidateTransports),
-            default => self::searchForTransport($candidateTransports, $blocks)
+            default => $this->searchForTransport($candidateTransports, $blocks)
         };
     }
 
@@ -85,9 +86,16 @@ class AllocationService
      * @param  array<Block>  $blocks
      * @return Transport|null
      */
-    private static function searchForTransport(array $candidateTransports, array $blocks): ?Transport
+    private function searchForTransport(array $candidateTransports, array $blocks): ?Transport
     {
-        return null;
+        $availableTransports = array_filter(
+            $candidateTransports,
+            fn($transport) => $this->blockLoader->canBeLoad($transport, $blocks)
+        );
+        if (count($availableTransports) === 0) {
+            return null;
+        }
+        return $availableTransports[0];
     }
 
     /**
