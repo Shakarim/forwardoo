@@ -72,8 +72,6 @@ class AllocationService
 
         $blocks = $this->blockMakingService->makeBlocks($cargo);
 
-        self::dd($cargo, $blocks);
-
         return match (true) {
             count($candidateTransports) === 0 => null,
             count($candidateTransports) === 1 => array_pop($candidateTransports),
@@ -114,25 +112,5 @@ class AllocationService
     public function getCargoTotalVolume(array $cargo): float
     {
         return array_reduce($cargo, fn($acc, $item) => $acc + $item->getSize()->getVolume(), 0);
-    }
-
-    // Temporary debugging function
-    private static function dd(array $cargo, array $blocks): void
-    {
-        foreach ($cargo as $i => $item) {
-            echo "Cargo #{$i}; Weight: {$item->getWeight()}; Stacking: {$item->getStacking()->name}; Sizes: [L: {$item->getSize()->getLength()}, W: {$item->getSize()->getWidth()}, H: {$item->getSize()->getHeight()}]\n";
-        }
-        echo "----------------------------\n";
-        foreach ($blocks as $i => $block) {
-            $top = $block->getTop();
-            $topString = '-';
-            if ($top) {
-                $topString = "weight: {$top->getWeight()}, stacking: {$top->getStacking()->name}";
-            }
-            $bottomString = "weight: {$block->getBottom()->getWeight()}, stacking: {$block->getBottom()->getStacking()->name}";
-            $blockString = "weight: {$block->getWeight()}, height: {$block->getSize()->getHeight()}";
-
-            echo "Block #{$i};\n\t$blockString\n\t\t⤤ {$topString}\n\t\t⤥ $bottomString\n";
-        }
     }
 }
