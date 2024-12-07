@@ -40,7 +40,9 @@ readonly class Cargo
             && in_array($this->getStacking(), [Stacking::AnyStacking, Stacking::OnlyTop])
             && in_array($cargo->getStacking(), [Stacking::AnyStacking, Stacking::OnlyBottom])
             && ($cargo->getSize()->getArea() - $this->getSize()->getArea()) >= 0
-            && $cargo->getSize()->getWidth() >= $this->getSize()->getWidth()
-            && $cargo->getSize()->getLength() >= $this->getSize()->getLength();
+            && (
+                ($cargo->getSize()->getWidth() >= $this->getSize()->getWidth() && $cargo->getSize()->getLength() >= $this->getSize()->getLength())
+                || ($cargo->getSize()->getWidth() >= $this->getSize()->getLength() && $cargo->getSize()->getLength() >= $this->getSize()->getWidth())
+            );
     }
 }
